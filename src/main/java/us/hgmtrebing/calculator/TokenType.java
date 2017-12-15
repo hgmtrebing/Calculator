@@ -5,14 +5,14 @@ import java.math.BigDecimal;
 
 public enum TokenType {
 
-    VALUE (new String[0], 0, 0, true, false, false) {
+    VALUE ("(((?<=\\D)|^)-)?\\d+(\\.\\d+)?", 0, 0, true, false, false) {
         @Override
         public BigDecimal evaluate (BigDecimal ... operands) {
             throw new UnsupportedOperationException("Value cannot be evaluated");
         }
     },
 
-    ADD (new String[] {"+"}, 1, 2, false, true, true) {
+    ADD ("\\+", 1, 2, false, true, true) {
         @Override
         public BigDecimal evaluate (BigDecimal... operands) {
             BigDecimal result = new BigDecimal(0);
@@ -24,7 +24,7 @@ public enum TokenType {
         }
     },
 
-    SUBTRACT (new String[] {"-"}, 1, 2, false, true, true) {
+    SUBTRACT ("(?<=\\d)?\\-", 1, 2, false, true, true) {
         @Override
         public BigDecimal evaluate (BigDecimal ... operands) {
             BigDecimal result = new BigDecimal(0);
@@ -35,7 +35,7 @@ public enum TokenType {
         }
     },
 
-    MULTIPLY (new String[] {"*", "×", "⋅"}, 2, 2, false, true, true) {
+    MULTIPLY ("[\\*×⋅]", 2, 2, false, true, true) {
         @Override
         public  BigDecimal evaluate (BigDecimal ... operands) {
             BigDecimal result = new BigDecimal(1);
@@ -46,7 +46,7 @@ public enum TokenType {
         }
     },
 
-    DIVIDE (new String[] {"/", "÷"}, 2, 2, false, true, true) {
+    DIVIDE ("[/÷]", 2, 2, false, true, true) {
         @Override
         public BigDecimal evaluate (BigDecimal ... operands) {
             BigDecimal result = operands[0];
@@ -55,11 +55,18 @@ public enum TokenType {
             }
             return result;
         }
+    },
+
+    UNKNOWN("", 100_000, 0, false, false, false) {
+        @Override
+        public BigDecimal evaluate (BigDecimal ... operands) {
+            throw new UnsupportedOperationException("Invalid Token!");
+        }
     }
 
     ;
 
-    @Getter private final String[] symbols;
+    @Getter private final String symbols;
     @Getter private final int precedence;
     @Getter private final int operandNum;
     @Getter private final boolean containsValue;
@@ -68,7 +75,7 @@ public enum TokenType {
 
     public abstract BigDecimal evaluate (BigDecimal ... operands);
 
-    TokenType (String[] symbols, int precedence, int operandNum, boolean containsValue, boolean evaluatable, boolean
+    TokenType (String symbols, int precedence, int operandNum, boolean containsValue, boolean evaluatable, boolean
                       leftAssociative) {
 
         this.symbols = symbols;
@@ -78,14 +85,4 @@ public enum TokenType {
         this.evaluatable = evaluatable;
         this.leftAssociative = leftAssociative;
     }
-
-    public boolean containsSymbol (String possibleSymbol) {
-        for (String symbol : this.symbols) {
-            if (symbol.equals(possibleSymbol)) {
-                return true;
-            }
-        }
-        return  false;
-    }
-
 }
