@@ -27,9 +27,9 @@ public enum TokenType {
     SUBTRACT ("(?<=\\d)?\\-", 1, 2, false, true, true) {
         @Override
         public BigDecimal evaluate (BigDecimal ... operands) {
-            BigDecimal result = new BigDecimal(0);
-            for (BigDecimal o : operands) {
-                result = result.subtract(o);
+            BigDecimal result = operands[0];
+            for (int i = 1; i < operands.length; i++) {
+                result = result.subtract( operands[i] );
             }
             return result;
         }
@@ -49,6 +49,7 @@ public enum TokenType {
     DIVIDE ("[/÷]", 2, 2, false, true, true) {
         @Override
         public BigDecimal evaluate (BigDecimal ... operands) {
+            //TODO - add logic to handle irrational and repetitive numbers
             BigDecimal result = operands[0];
             for (int i = 1; i < operands.length; i++) {
                 result = result.divide(operands[i]);

@@ -2,11 +2,15 @@ package us.hgmtrebing.calculator;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.function.Executable;
 
 import java.math.BigDecimal;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.Deque;
 
 public class TokenTest {
     //TODO - I need to reverse all of the operands in my test, for clarity
@@ -150,4 +154,118 @@ public class TokenTest {
         Assertions.assertEquals(o, t);
     }
 
+    @Test
+    public void tokenizeTest3() {
+        List<Token> t = Token.tokenize("-42--49.17/15.2+19.00");
+        List<Token> o = Arrays.asList(Token.parseToken("-42"), Token.parseToken("-"), Token.parseToken("-49.17"),
+                        Token.parseToken("/"), Token.parseToken("15.2"), Token.parseToken("+"),
+                        Token.parseToken("19.00"));
+        Assertions.assertEquals(o, t);
+    }
+
+    @Test
+    public void tokenizeTest4() {
+        try {
+            Class e = Class.forName("IllegalArgumentException");
+            Assertions.assertThrows(e, new Executable() {
+                @Override
+                public void execute() {
+                    List<Token> t = Token.tokenize("abc");
+                    List<Token> o = Arrays.asList();
+                    Assertions.assertEquals(o, t);
+                };
+            });
+        } catch (Exception t) {
+
+        }
+
+    }
+
+    @Test
+    public void tokenizeTest5() {
+        try {
+            Class e = Class.forName("IllegalArgumentException");
+            Assertions.assertThrows(e, new Executable() {
+                @Override
+                public void execute() {
+                    List<Token> t = Token.tokenize( "c4d.74");
+                    List<Token> o = Arrays.asList(new Token(new BigDecimal(4)), new Token(new BigDecimal("74")));
+                    Assertions.assertEquals(o, t);
+                };
+            });
+        } catch (Exception t) {
+
+        }
+    }
+
+    @Test
+    public void infixToPostfixTest1 () {
+        Deque<Token> a = new ArrayDeque<>( Arrays.asList ( Token.parseToken("3"),
+                Token.parseToken("4"), Token.parseToken("+")) );
+        Deque<Token> b = Token.infixToPostfix("3+4");
+        Assertions.assertEquals(a.toString(), b.toString());
+    }
+
+    @Test
+    public void infixToPostfixTest2 () {
+        Deque<Token> a = new ArrayDeque<>( Arrays.asList( Token.parseToken("3"),
+                Token.parseToken("9"), Token.parseToken("*"), Token.parseToken("-24.772"), Token.parseToken("5"),
+                Token.parseToken("/"), Token.parseToken("-")));
+        Deque<Token> b = Token.infixToPostfix("3*9--24.772/5");
+        Assertions.assertEquals(a.toString(), b.toString());
+    }
+
+    @Test
+    public void infixToPostfixTest3 () {
+        Deque<Token> a = new ArrayDeque<>( Arrays.asList( Token.parseToken("-45123.19"), Token.parseToken("27"),
+                Token.parseToken("*"), Token.parseToken("4"), Token.parseToken("3"), Token.parseToken("*"),
+                Token.parseToken("+")));
+        Deque<Token> b = Token.infixToPostfix("-45123.19 * 27 + 4 * 3");
+        Assertions.assertEquals(a.toString(), b.toString());
+    }
+
+    @Test
+    public void evaluateTest1 () {
+        Assertions.assertEquals(new BigDecimal("12"), Token.evaluate("7+5"));
+    }
+
+    @Test
+    public void evaluateTest2 () {
+        Assertions.assertEquals(new BigDecimal("12"), Token.evaluate("3*4"));
+    }
+
+    @Test
+    public void evaluateTest3 () {
+        Assertions.assertEquals(new BigDecimal("32"), Token.evaluate("6*5+4/2"));
+    }
+
+    @Test
+    public void evaluateTest4 () {
+        Assertions.assertEquals(new BigDecimal("-27.5"), Token.evaluate ("-10+40/-2+2.5"));
+    }
+
+    @Test
+    public void evaluateTest5 () {
+        Assertions.assertEquals(new BigDecimal("14.25"), Token.evaluate("6.125*2+2"));
+    }
+
+    @Test
+    public void evaluateTest6 () {
+        Assertions.assertEquals(new BigDecimal ("-94.0079"), Token.evaluate("20.0025*-3-0.0004-68/2"));
+    }
+
+    @Test
+    public void evaluateTest7 () {
+        Assertions.assertEquals( new BigDecimal("-1"), Token.evaluate("-60/3/2/2/5"));
+    }
+
+    @Test
+    public void evaluateTest8 () {
+        Assertions.assertEquals( new BigDecimal ("61.0234"), Token.evaluate("25.0078 * 3 -14"));
+    }
+
+    @Test
+    public void evaluateTest9 () {
+        Assertions.assertEquals( new BigDecimal("1"), Token.evaluate("1+2-3*4/5+6-7*8/10"));
+    }
 }
