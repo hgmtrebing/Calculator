@@ -2,12 +2,12 @@ package us.hgmtrebing.calculator;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.regex.Pattern;
 
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
-import javafx.stage.Stage;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 
@@ -16,6 +16,8 @@ import javafx.scene.control.Label;
 public class GuiController implements Initializable{
 
     private final String validationString;
+    private final Pattern decimalValidationPattern; //special validation String is needed for decimals
+    private final Pattern characterValidationPattern;
     private final Calculator calculator = new Calculator ();
     private boolean evaluated = false;
 
@@ -52,6 +54,34 @@ public class GuiController implements Initializable{
             sb.append(String.format("|(?<%s>%s)", t.name(), "\\G" + t.getSymbols()));
         }
         this.validationString = sb.toString();
+        /* validationString is a Pattern that validates the input of all non-decimal characters
+         * validationString is formed using regex information from TokenType
+         * It is the first method used to validate characters inputted from the keyboard
+         */
+
+        this.characterValidationPattern = Pattern.compile("\\d\\D?-?\\z");
+        /* operatorValidationPattern is a special pattern to validate the addition of new operators
+         * Operators must be preceded by a digit, and may be followed by a negative sign
+         */
+
+        this.decimalValidationPattern = Pattern.compile("(^|[\\D&&[^\\.]])\\d+\\.\\z");
+        /* decimalValidationPattern is a special Pattern that protects against the insertion of erroneous decimal points
+         * Erroneous decimal points include:
+         *  1) Decimals that are inserted back-to back, eg: 45...931
+         *  2) Decimals that are inserted when a number already contains a decimal, eg: 49.41523.42
+         *  3) Decimals that are inserted outside of a number, eg: 72+.-45
+         *
+         * NOTE: This Pattern does not protect against a trailing decimal point at the end of the number, eg.
+         * 45111. or 45121.*45
+         * Other areas of the application must protect against them
+         *
+         * A brief synopsis of how this regular expression works:
+         *  1) If the user enters a decimal, it will be right before the end of input (\\.\\z)
+         *  2) Directly before the decimal, there should be 1 or more numeric digits (\\d+)
+         *  3)At the front of the string of digits should be:
+         *      3a. The beginning of the line (^)
+         *      3b. A non-digit character that IS NOT a decimal ([\\D&&[^\\.]])
+         */
     }
     @Override
     public void initialize (URL location, ResourceBundle bundle) {
@@ -148,6 +178,9 @@ public class GuiController implements Initializable{
         });
         clrKey.setFocusTraversable(false);
 
+        ansKey.setOnAction(event -> {
+            this.addTextToDisplay( this.resultDisplay.getText() );
+        });
         ansKey.setFocusTraversable(false);
 
         backspaceKey.setOnAction(event -> {
@@ -158,19 +191,11 @@ public class GuiController implements Initializable{
         //Adds an event handler for keyboard events
         //This allows the user to type, rather than press buttons
         gridPane.setOnKeyTyped(event -> {
-            String character = event.getCharacter();
-            KeyCode code = event.getCode();
-            if (code.equals(KeyCode.BACK_SPACE)) {
-                removeCharacterFromDisplay();
-            } else if (character.matches(this.validationString)) {
-                addTextToDisplay(character);
-            } else if (character.equals(".")) {
-                //TODO - think of a better way to add decimal points
-                //right now, the user can add as many as (s)he wants
-                //addTextToDisplay(character);
-            }
+            addTextToDisplay( event.getCharacter() );
         });
 
+        //Sets event handlers for backspace and enter keys
+        //For some reason, JavaFX can only work with these if used with setOnKeyPressed(), not setOnKeyTyped() [used above]
         gridPane.setOnKeyPressed(event -> {
             KeyCode code = event.getCode();
             if (code.equals(KeyCode.BACK_SPACE)) {
@@ -182,12 +207,27 @@ public class GuiController implements Initializable{
     }
 
     private void addTextToDisplay(String text) {
-        //If expression was just evaluated, "blank out" the expression display and add the new character
-        if (this.evaluated) {
-            this.expressionDisplay.setText("");
-            this.evaluated = false;
+        String possibleNewExpression = this.expressionDisplay.getText() + text;
+
+        if ( text.matches(this.validationString) && characterValidationPattern.matcher(possibleNewExpression).find()) {
+
+            //If expression was just evaluated, "blank out" the expression display and add the new character
+            if (this.evaluated) {
+                this.expressionDisplay.setText("");
+                this.evaluated = false;
+            }
+            this.expressionDisplay.setText(possibleNewExpression);
+
+        } else if (text.equals(".") && decimalValidationPattern.matcher(possibleNewExpression).find()) {
+
+            //If expression was just evaluated, "blank out" the expression display and add the new character
+            if (this.evaluated) {
+                this.expressionDisplay.setText("");
+                this.evaluated = false;
+            }
+            this.expressionDisplay.setText(possibleNewExpression);
+
         }
-        this.expressionDisplay.setText( this.expressionDisplay.getText() + text);
     }
 
     private void removeCharacterFromDisplay() {
@@ -200,10 +240,20 @@ public class GuiController implements Initializable{
     }
 
     private void evaluate () {
-        String expression = this.expressionDisplay.getText();
-        String result = this.calculator.evaluate(expression).toString();
-
-        this.resultDisplay.setText( result );
-        this.evaluated = true;
+        /*Try-catch clause necessary because it is possible for the user to try and evaluate illegal expression
+         *Because of previous validations which sanitize input, the only illegal expressions are ones that possible are incomplete expressions
+         *Aka, expressions that are legal up until the end of input, for example:
+         *  a. 61+45112.
+         *  b. 59*
+         *  c. 41.3*-
+         */
+        try {
+            String result = this.expressionDisplay.getText();
+            result = this.calculator.evaluate(result).toString();
+            this.resultDisplay.setText( result );
+            this.evaluated = true;
+        } catch (Exception e) {}
+        //catch clause does nothing because, by this point, illegal expressions are merely incomplete
+        //After the illegal expression is caught, the user should be allowed to complete the expression and re-evaluated it
     }
 }
