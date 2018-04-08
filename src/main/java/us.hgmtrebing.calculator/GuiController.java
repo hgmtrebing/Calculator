@@ -144,6 +144,7 @@ public class GuiController implements Initializable{
 
         clrKey.setOnAction(event -> {
             this.expressionDisplay.setText("");
+            this.resultDisplay.setText("");
         });
         clrKey.setFocusTraversable(false);
 

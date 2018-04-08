@@ -4,8 +4,7 @@
 }
 
 .gp1 {
-	-fx-grid-lines-visible: true;
-	-fx-margin: 1em;
+	-fx-background-color: #9c9a9a;
 }
 
 .button {
@@ -18,5 +17,6 @@
 
 .display {
     -fx-height: 5em;
+    -fx-background-color: #cfcdcc;
 }
 
