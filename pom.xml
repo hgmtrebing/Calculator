@@ -21,6 +21,18 @@
     - It is used specifically to help Maven understand JUnit 5
  -->
     <build>
+        <!--
+            - This code was obtained from https://stackoverflow.com/questions/14699441/getclass-getresourceasstream-in-maven-project
+            - This section was added because I could not get the FXMLLoader to find my FXML file
+            - It seems that I need to specify to Maven where to look for resources
+        -->
+        <sourceDirectory>src/main/java/</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>src/main/java/us.hgmtrebing.calculator</directory>
+            </resource>
+
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

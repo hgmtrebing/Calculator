@@ -1,0 +1,22 @@
+.root {
+    -fx-font-family: Ubuntu;
+    -fx-font-size: 30px;
+}
+
+.gp1 {
+	-fx-grid-lines-visible: true;
+	-fx-margin: 1em;
+}
+
+.button {
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+    -fx-max-height: 4em;
+    -fx-max-width: 4em;
+    -fx-padding: 10px;
+}
+
+.display {
+    -fx-height: 5em;
+}
+

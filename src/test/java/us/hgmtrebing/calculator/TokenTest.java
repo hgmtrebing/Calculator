@@ -136,6 +136,25 @@ public class TokenTest {
     }
 
     @Test
+    public void parseTokenTest10 () {
+        Token t = Tokenizer.parseToken("%");
+        Assertions.assertEquals(TokenType.MOD, t.getType());
+    }
+
+    @Test
+    public void parseTokenTest11 () {
+        Token t = Tokenizer.parseToken("(");
+        Assertions.assertEquals(TokenType.LPAREN, t.getType());
+    }
+
+    @Test
+    public void parseTokenTest12 () {
+        Token t = Tokenizer.parseToken(")");
+        Assertions.assertEquals(TokenType.RPAREN, t.getType());
+    }
+
+
+    @Test
     public void tokenizeTest1() {
         List <Token> t = Tokenizer.tokenize("4+8");
         List <Token> o = Arrays.asList(Tokenizer.parseToken("4"), Tokenizer.parseToken("+"), Tokenizer.parseToken("8"));
@@ -222,6 +241,16 @@ public class TokenTest {
     }
 
     @Test
+    public void infixToPostfixTest4 () {
+        Deque<Token> a = new ArrayDeque<>(Arrays.asList(Tokenizer.parseToken("3"), Tokenizer.parseToken("2"),
+                Tokenizer.parseToken("+"), Tokenizer.parseToken("5"), Tokenizer.parseToken("*"),
+                Tokenizer.parseToken("4"), Tokenizer.parseToken("+")));
+
+        Deque<Token> b = Tokenizer.infixToPostfix("(3+2)*5+4");
+        Assertions.assertEquals(a.toString(), b.toString());
+    }
+
+    @Test
     public void evaluateTest1 () {
         Assertions.assertEquals(new BigDecimal("12"), Tokenizer.evaluate("7+5"));
     }
@@ -265,4 +294,30 @@ public class TokenTest {
     public void evaluateTest9 () {
         Assertions.assertEquals( new BigDecimal("1"), Tokenizer.evaluate("1+2-3*4/5+6-7*8/10"));
     }
+
+    @Test
+    public void evaluateTest10 () {
+        Assertions.assertEquals( new BigDecimal("5"), Tokenizer.evaluate("2+19 % 16"));
+    }
+
+    @Test
+    public void evaluateTest11 () {
+        Assertions.assertEquals( new BigDecimal("-5.7"), Tokenizer.evaluate("-8.7+7%4"));
+    }
+
+    @Test
+    public void evaluateTest12 () {
+        Assertions.assertEquals(new BigDecimal("28"), Tokenizer.evaluate("(3+2)*5+3"));
+    }
+
+    @Test
+    public void evaluateTest13 () {
+        Assertions.assertEquals(new BigDecimal ("-93.17"), Tokenizer.evaluate("(15+16) * (1-4) -.17"));
+    }
+
+    @Test
+    public void evaluateTest14 () {
+        Assertions.assertEquals(new BigDecimal("-8.75"), Tokenizer.evaluate("((((3+5)))*4)/(5-9)-.75"));
+    }
+
 }

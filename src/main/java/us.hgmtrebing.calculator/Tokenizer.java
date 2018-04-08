@@ -66,6 +66,22 @@ public class Tokenizer {
             //If the token is a value, it can be added immediately to the postfix expression
             if (t.getType().equals(TokenType.VALUE)) {
                 postfixExpression.addLast(t);
+
+                //Custom line for handling Right Parenthesis
+            } else if (t.getType().equals(TokenType.RPAREN)) {
+
+                while (!tempOpStack.isEmpty()) {
+                    Token o = tempOpStack.removeFirst();
+                    if (o.getType().equals(TokenType.LPAREN)) {
+                        break;
+                    }
+                    postfixExpression.addLast (o);
+                }
+
+            } else if (t.getType().equals(TokenType.LPAREN)) {
+
+                tempOpStack.addFirst(t);
+
             } else {
                 //While the operator stack is NOT empty and has a token of greater or equal precedence...
                 while (!tempOpStack.isEmpty() &&
